@@ -1,0 +1,1349 @@
+<!doctype html>
+<html lang="zh-HK">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🔑 鑰匙控制列表 · 搜尋工具</title>
+    <style>
+      /* ----- 全局重置 & 字體 ----- */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", "PingFang HK", "Microsoft YaHei", sans-serif;
+        background: #f4f7fc;
+        padding: 1rem 0.75rem;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+      }
+
+      .app {
+        max-width: 1400px;
+        width: 100%;
+        background: #ffffff;
+        border-radius: 28px;
+        box-shadow: 0 20px 60px rgba(0, 20, 40, 0.08);
+        padding: 2rem 2rem 2.5rem;
+        transition: box-shadow 0.3s ease;
+      }
+
+      /* ----- 標題區 ----- */
+      .header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.75rem;
+        gap: 1rem;
+      }
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .header-left h1 {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #0b1e33;
+        letter-spacing: 0.5px;
+      }
+
+      .header-left .badge {
+        background: #eef3fa;
+        color: #1f4a7a;
+        font-size: 0.85rem;
+        font-weight: 500;
+        padding: 0.2rem 0.9rem;
+        border-radius: 20px;
+        white-space: nowrap;
+      }
+
+      .header-right {
+        font-size: 0.9rem;
+        color: #4a637f;
+        background: #f0f4fa;
+        padding: 0.4rem 1.2rem;
+        border-radius: 30px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .header-right span {
+        font-weight: 600;
+        color: #0b1e33;
+      }
+
+      /* ----- 搜尋欄 ----- */
+      .search-section {
+        background: #f8faff;
+        border-radius: 18px;
+        padding: 1.5rem 1.8rem;
+        margin-bottom: 2rem;
+        border: 1px solid #e6edf6;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 1rem 1.2rem;
+        transition: border-color 0.2s;
+      }
+
+      .search-section:focus-within {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08);
+      }
+
+      .search-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+        color: #1f3a5e;
+        font-size: 0.95rem;
+        white-space: nowrap;
+      }
+
+      .search-label .icon {
+        font-size: 1.2rem;
+      }
+
+      .search-input-wrapper {
+        flex: 1;
+        min-width: 200px;
+        position: relative;
+      }
+
+      .search-input-wrapper input {
+        width: 100%;
+        padding: 0.75rem 1.2rem;
+        border: 1px solid #d9e2ef;
+        border-radius: 60px;
+        font-size: 1rem;
+        background: #ffffff;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+        outline: none;
+        color: #0b1e33;
+      }
+
+      .search-input-wrapper input::placeholder {
+        color: #8aa1bc;
+      }
+
+      .search-input-wrapper input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+      }
+
+      .search-actions {
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        padding: 0.7rem 1.6rem;
+        border: none;
+        border-radius: 60px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+
+      .btn-primary {
+        background: #1a4d7a;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #0e3a60;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(26, 77, 122, 0.25);
+      }
+
+      .btn-primary:active {
+        transform: translateY(0);
+      }
+
+      .btn-secondary {
+        background: #e9eff7;
+        color: #1f3a5e;
+      }
+
+      .btn-secondary:hover {
+        background: #dce5f0;
+      }
+
+      /* ----- 結果統計 ----- */
+      .result-stats {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem 1rem;
+        margin-bottom: 1.25rem;
+        padding: 0 0.2rem;
+      }
+
+      .result-stats .count {
+        font-size: 0.95rem;
+        color: #2c4c72;
+      }
+
+      .result-stats .count strong {
+        color: #0b1e33;
+        font-weight: 700;
+      }
+
+      .result-stats .hint {
+        font-size: 0.85rem;
+        color: #7a94b2;
+      }
+
+      /* ----- 表格容器 ----- */
+      .table-wrap {
+        overflow-x: auto;
+        border-radius: 16px;
+        border: 1px solid #e9eff5;
+        background: #ffffff;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.92rem;
+        min-width: 700px;
+      }
+
+      thead {
+        background: #f2f6fd;
+        border-bottom: 2px solid #dce5f0;
+      }
+
+      thead th {
+        padding: 0.9rem 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: #1f3a5e;
+        white-space: nowrap;
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+      }
+
+      thead th:first-child {
+        border-radius: 12px 0 0 0;
+      }
+      thead th:last-child {
+        border-radius: 0 12px 0 0;
+      }
+
+      tbody tr {
+        border-bottom: 1px solid #edf2f9;
+        transition: background 0.15s;
+      }
+
+      tbody tr:last-child {
+        border-bottom: none;
+      }
+
+      tbody tr:hover {
+        background: #f8fbff;
+      }
+
+      tbody td {
+        padding: 0.8rem 1rem;
+        color: #1b314a;
+        vertical-align: middle;
+        line-height: 1.5;
+      }
+
+      tbody td .highlight {
+        background: #fde68a;
+        padding: 0 2px;
+        border-radius: 3px;
+        font-weight: 500;
+      }
+
+      .col-item {
+        font-weight: 600;
+        color: #0b1e33;
+        white-space: nowrap;
+        font-size: 0.85rem;
+      }
+
+      .col-floor {
+        white-space: nowrap;
+        font-weight: 500;
+        color: #1f4a7a;
+      }
+
+      .col-location {
+        min-width: 180px;
+      }
+
+      .col-date {
+        white-space: nowrap;
+        font-size: 0.8rem;
+        color: #4a637f;
+      }
+
+      .col-remarks {
+        font-size: 0.85rem;
+        color: #4a637f;
+        max-width: 200px;
+        word-break: break-word;
+      }
+
+      .col-remarks:empty::before {
+        content: "—";
+        color: #bcc9db;
+      }
+
+      /* ----- 空狀態 ----- */
+      .empty-state {
+        padding: 3.5rem 1.5rem;
+        text-align: center;
+        color: #6d8aac;
+      }
+
+      .empty-state .big-icon {
+        font-size: 3rem;
+        display: block;
+        margin-bottom: 0.8rem;
+      }
+
+      .empty-state p {
+        font-size: 1.05rem;
+        margin-bottom: 0.3rem;
+      }
+
+      .empty-state .sub {
+        font-size: 0.9rem;
+        color: #8aa3c0;
+      }
+
+      /* ----- 響應式 ----- */
+      @media (max-width: 768px) {
+        body {
+          padding: 0.25rem 0.2rem;
+        }
+        .app {
+          padding: 0.6rem 1rem 0.9rem;
+          border-radius: 20px;
+        }
+        .header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        .header-left h1 {
+          font-size: 1.4rem;
+        }
+        .header-right {
+          font-size: 0.8rem;
+          padding: 0.3rem 1rem;
+        }
+        .search-section {
+          padding: 1rem 1.2rem;
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .search-label {
+          font-size: 0.9rem;
+        }
+        .search-input-wrapper input {
+          padding: 0.65rem 1rem;
+          font-size: 0.95rem;
+        }
+        .search-actions {
+          justify-content: stretch;
+        }
+        .search-actions .btn {
+          flex: 1;
+          justify-content: center;
+          padding: 0.6rem 1rem;
+          font-size: 0.9rem;
+        }
+        .result-stats {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.3rem;
+        }
+        table {
+          font-size: 0.82rem;
+          min-width: 550px;
+        }
+        thead th,
+        tbody td {
+          padding: 0.6rem 0.7rem;
+        }
+        .col-item {
+          font-size: 0.8rem;
+        }
+        .col-date {
+          font-size: 0.72rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .app {
+          padding: 0.4rem 0.3rem 0.6rem;
+        }
+        .header-left h1 {
+          font-size: 1.2rem;
+        }
+        .search-section {
+          padding: 0.8rem 0.8rem;
+        }
+        table {
+          font-size: 0.75rem;
+          min-width: 480px;
+        }
+        thead th,
+        tbody td {
+          padding: 0.4rem 0.5rem;
+        }
+      }
+
+      /* 小工具：微動畫 */
+      @keyframes fadeSlide {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      tbody tr {
+        animation: fadeSlide 0.2s ease forwards;
+      }
+
+      tbody tr:nth-child(1) {
+        animation-delay: 0.01s;
+      }
+      tbody tr:nth-child(2) {
+        animation-delay: 0.03s;
+      }
+      tbody tr:nth-child(3) {
+        animation-delay: 0.05s;
+      }
+      tbody tr:nth-child(4) {
+        animation-delay: 0.07s;
+      }
+      tbody tr:nth-child(5) {
+        animation-delay: 0.09s;
+      }
+      tbody tr:nth-child(6) {
+        animation-delay: 0.11s;
+      }
+      tbody tr:nth-child(7) {
+        animation-delay: 0.13s;
+      }
+      tbody tr:nth-child(8) {
+        animation-delay: 0.15s;
+      }
+      tbody tr:nth-child(9) {
+        animation-delay: 0.17s;
+      }
+      tbody tr:nth-child(10) {
+        animation-delay: 0.19s;
+      }
+      tbody tr:nth-child(11) {
+        animation-delay: 0.21s;
+      }
+      tbody tr:nth-child(12) {
+        animation-delay: 0.23s;
+      }
+      tbody tr:nth-child(13) {
+        animation-delay: 0.25s;
+      }
+      tbody tr:nth-child(14) {
+        animation-delay: 0.27s;
+      }
+      tbody tr:nth-child(15) {
+        animation-delay: 0.29s;
+      }
+      tbody tr:nth-child(16) {
+        animation-delay: 0.31s;
+      }
+      tbody tr:nth-child(17) {
+        animation-delay: 0.33s;
+      }
+      tbody tr:nth-child(18) {
+        animation-delay: 0.35s;
+      }
+      tbody tr:nth-child(19) {
+        animation-delay: 0.37s;
+      }
+      tbody tr:nth-child(20) {
+        animation-delay: 0.39s;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app" id="app">
+      <!-- 標題 -->
+      <div class="header">
+        <div class="header-left">
+          <h1>🔑 鑰匙控制列表</h1>
+          <span class="badge">📋 搜尋工具</span>
+        </div>
+        <div class="header-right">
+          📄 共 <span id="totalCount">0</span> 條記錄
+        </div>
+      </div>
+
+      <!-- 搜尋欄 -->
+      <div class="search-section">
+        <div class="search-label"><span class="icon">🔍</span> 搜尋</div>
+        <div class="search-input-wrapper">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="輸入 Item 編號 / 樓層 (如 GF, 1F) / 位置 / 備註…"
+            autofocus
+          />
+        </div>
+        <div class="search-actions">
+          <button class="btn btn-primary" id="searchBtn">🔎 搜尋</button>
+          <button class="btn btn-secondary" id="resetBtn">↺ 重置</button>
+        </div>
+      </div>
+
+      <!-- 結果統計 -->
+      <div class="result-stats">
+        <div class="count">
+          找到 <strong id="resultCount">0</strong> 筆匹配記錄
+        </div>
+        <div class="hint" id="searchHint">
+          💡 輸入關鍵字，跨欄位模糊搜尋 (樓層可省略斜槓)
+        </div>
+      </div>
+
+      <!-- 表格 -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 70px">編號</th>
+              <th style="width: 90px">樓層</th>
+              <th>位置</th>
+              <th style="width: 110px">更新日期</th>
+              <th style="width: 160px">備註</th>
+            </tr>
+          </thead>
+          <tbody id="resultBody">
+            <!-- 由 JavaScript 動態渲染 -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      // ================================================================
+      //  1. 數據（直接從 Excel 轉譯）
+      // ================================================================
+      const DATA = [
+        {
+          item: "01",
+          floor: "G/F",
+          location: "Control Room 地下保安控制室",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "02",
+          floor: "G/F",
+          location: "Rear door後巷 (地下垃圾房旁)",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "03",
+          floor: "G/F",
+          location: "Gas chamber毒氣房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "04",
+          floor: "G/F",
+          location: "Salt water pump room後巷咸水泵房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "05",
+          floor: "G/F",
+          location: "Garbage room垃圾房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "06",
+          floor: "G/F",
+          location: "G/F TBE room 地下TBE房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "07",
+          floor: "G/F",
+          location: "water meter 1-4 地下後巷水錶房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "08",
+          floor: "G/F",
+          location: "G/F 地下玻璃自動門",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "09",
+          floor: "G/F",
+          location: "G/F ENG room 工程部",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "10",
+          floor: "G/F",
+          location: "G/F entrance switch 出入口開關掣",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "11",
+          floor: "G/F",
+          location: "G/F 地下停車場轉盤",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "12",
+          floor: "G/F",
+          location: "地下垃圾房水龍頭制箱",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "13",
+          floor: "G/F",
+          location: "1,2,3號電梯匙 (二樓分層制開關)",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "14",
+          floor: "1/F",
+          location: "前台柜枱緊急重置匙(於前台櫃下)",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "15",
+          floor: "1/F",
+          location: "TBE 房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "16",
+          floor: "1/F",
+          location: "貨𨋢大堂側邊木門",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "17",
+          floor: "1/F",
+          location: "總電制房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "18",
+          floor: "1/F",
+          location: "1/F back office switch 辦公室開關掣",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "19",
+          floor: "2/F",
+          location: "防火閘",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "20",
+          floor: "2/F",
+          location: "廚房吊柜",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "21",
+          floor: "2/F",
+          location: "雪柜,汽水櫃,酒櫃X2, 辦公室櫃桶",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "22",
+          floor: "2/F",
+          location: "電腦數據房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "23",
+          floor: "3/F",
+          location: "P.A.U空調機房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "24",
+          floor: "3/F",
+          location: "熱水爐房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "25",
+          floor: "3/F",
+          location: "消防花灑泵房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "26",
+          floor: "3/F",
+          location: "食水泵房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "27",
+          floor: "3/F",
+          location: "水錶柜(食水抄錶專用)",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "28",
+          floor: "3/F",
+          location: "走廊位水錶柜",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "29",
+          floor: "3/F",
+          location: "花園百葉門(1&2號門)",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "30",
+          floor: "3/F",
+          location: "三樓玻璃門T字鎖鎖匙",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "31",
+          floor: "3/F",
+          location: "升降台專用匙",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "32",
+          floor: "5/F",
+          location: "5/F back office switch 辦公室開關掣",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "33",
+          floor: "5/F",
+          location: "熱水爐房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "34",
+          floor: "5/F",
+          location: "風柜房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "35",
+          floor: "5/F",
+          location: "五樓廚房防火閘",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "36",
+          floor: "5/F",
+          location: "五樓布草房防火閘",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "37",
+          floor: "6/F",
+          location: "風柜房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "38",
+          floor: "6/F",
+          location: "Utility Room內瓦仔門匙",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "39",
+          floor: "6/F",
+          location: "自動洗衣機維修專用匙",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "40",
+          floor: "6/F",
+          location: "洗衣房(設備房)門匙",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "41",
+          floor: "7/F",
+          location: "Utility Room內瓦仔門匙",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "42",
+          floor: "7/F",
+          location: "風柜房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "43",
+          floor: "8/F",
+          location: "Utility Room內瓦仔門匙",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "44",
+          floor: "8/F",
+          location: "風柜房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "45",
+          floor: "9/F",
+          location: "Utility Room內瓦仔門匙",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "46",
+          floor: "9/F",
+          location: "風柜房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "47",
+          floor: "10/F",
+          location: "Utility Room內瓦仔門匙",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "48",
+          floor: "10/F",
+          location: "風柜房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "49",
+          floor: "11/F",
+          location: "Utility Room內瓦仔門匙",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "50",
+          floor: "11/F",
+          location: "風柜房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "51",
+          floor: "12/F",
+          location: "Utility Room內瓦仔門匙",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "52",
+          floor: "12/F",
+          location: "風柜房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "53",
+          floor: "15/F",
+          location: "Utility Room內瓦仔門匙",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "54",
+          floor: "15/F",
+          location: "風柜房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "55",
+          floor: "16/F",
+          location: "Utility Room內瓦仔門匙",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "56",
+          floor: "16/F",
+          location: "風柜房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "57",
+          floor: "17/F",
+          location: "Utility Room內瓦仔門匙",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "58",
+          floor: "17/F",
+          location: "風柜房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "59",
+          floor: "18/F",
+          location: "Utility Room內瓦仔門匙",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "60",
+          floor: "18/F",
+          location: "風柜房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "61",
+          floor: "19/F",
+          location: "Utility Room內瓦仔門匙",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "62",
+          floor: "19/F",
+          location: "風柜房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "63",
+          floor: "20/F",
+          location: "Utility Room內瓦仔門匙",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "64",
+          floor: "20/F",
+          location: "風柜房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "65",
+          floor: "21/F",
+          location: "電梯機房(三菱專用)",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "66",
+          floor: "21/F",
+          location: "食水咸水泵房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "67",
+          floor: "21/F",
+          location: "消防水缸房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "68",
+          floor: "21/F",
+          location: "chiller plant room 21/F冷凍房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "69",
+          floor: "Roof",
+          location: "chiller plant room 天台冷凍房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "70",
+          floor: "Roof",
+          location: "緊急發電機房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "71",
+          floor: "Roof",
+          location: "天台弱電房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "72",
+          floor: "Roof",
+          location: "天台泵房",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "73",
+          floor: "Roof",
+          location: "天台電梯機房 (三菱電梯專用)",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "74",
+          floor: "Roof",
+          location: "天台出路 bypass key",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "75",
+          floor: "Roof",
+          location: "天台推bar bypass 匙箱",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "76",
+          floor: "Roof",
+          location: "天台推bar 匙 (一號梯)",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "77",
+          floor: "Roof",
+          location: "天台吊船",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "78",
+          floor: "All floor",
+          location: "所有樓層推bar通匙",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "79",
+          floor: "All floor",
+          location: "殘廁冬菇頭匙 (1,2,5,6,7/F)",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "80",
+          floor: "All floor",
+          location: "所有樓層Pipe duct 通匙",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "81",
+          floor: "All floor",
+          location: "所有樓層風柜房通匙",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "82",
+          floor: "All floor",
+          location: "所有樓層消防喉轆匙",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "83",
+          floor: "All floor",
+          location: "各樓層走廊盪門匙",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "84",
+          floor: "1/F",
+          location: "Store room",
+          date: "2022-06-14",
+          remarks: "",
+        },
+        {
+          item: "85",
+          floor: "G/F",
+          location: "Control Rm Alarm Monitor Panel",
+          date: "2024-04-19",
+          remarks: "",
+        },
+        {
+          item: "86",
+          floor: "2/F",
+          location: "電箱匙(貨𨋢大堂)",
+          date: "2026-04-07",
+          remarks: "冷氣開關時間控制",
+        },
+        {
+          item: "3089",
+          floor: "G/F",
+          location: "Vending Machine",
+          date: "2022-10-06",
+          remarks: "",
+        },
+        {
+          item: "3090",
+          floor: "G/F",
+          location: "Vending Machine",
+          date: "2022-10-06",
+          remarks: "",
+        },
+      ];
+
+      // ================================================================
+      //  2. DOM 引用
+      // ================================================================
+      const searchInput = document.getElementById("searchInput");
+      const searchBtn = document.getElementById("searchBtn");
+      const resetBtn = document.getElementById("resetBtn");
+      const resultBody = document.getElementById("resultBody");
+      const totalCount = document.getElementById("totalCount");
+      const resultCount = document.getElementById("resultCount");
+      const searchHint = document.getElementById("searchHint");
+
+      // ================================================================
+      //  3. 輔助函數
+      // ================================================================
+      // 標準化樓層字串：移除斜槓、轉大寫
+      function normalizeFloor(str) {
+        return str.replace(/\//g, "").toUpperCase();
+      }
+
+      // ================================================================
+      //  4. 渲染函數 (支援高亮)
+      // ================================================================
+      function render(records, keyword) {
+        totalCount.textContent = DATA.length;
+
+        if (records.length === 0) {
+          resultBody.innerHTML = `
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <span class="big-icon">🔎</span>
+                                <p>沒有找到匹配的記錄</p>
+                                <div class="sub">試試其他關鍵字，或點擊「重置」顯示全部</div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+          resultCount.textContent = "0";
+          searchHint.textContent = "💡 沒有匹配結果，請調整關鍵字";
+          return;
+        }
+
+        const kw = keyword ? keyword.trim() : "";
+        const kwLower = kw.toLowerCase();
+        // 用於 floor 比對的標準化關鍵字 (移除斜槓、大寫)
+        const kwFloorNorm = normalizeFloor(kw);
+
+        let html = "";
+        for (const r of records) {
+          const itemRaw = r.item;
+          const floorRaw = r.floor;
+          const locRaw = r.location;
+          const dateRaw = r.date;
+          const remRaw = r.remarks || "";
+
+          // 高亮處理 (只針對搜尋關鍵字)
+          const highlight = (text) => {
+            if (!kwLower || !text) return text;
+            const lower = text.toLowerCase();
+            if (!lower.includes(kwLower)) return text;
+            const regex = new RegExp(
+              kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+              "gi",
+            );
+            return text.replace(
+              regex,
+              (match) => `<span class="highlight">${match}</span>`,
+            );
+          };
+
+          // 對樓層做特別高亮：因為使用者可能輸入 "1F" 而數據是 "1/F"，要能高亮
+          // 簡單策略：如果 floorRaw 包含關鍵字（忽略斜槓），則高亮整個樓層
+          let floorDisplay = floorRaw;
+          if (kwLower && normalizeFloor(floorRaw).includes(kwFloorNorm)) {
+            // 高亮整個樓層（因為格式可能不同，直接高亮原始值）
+            floorDisplay = `<span class="highlight">${floorRaw}</span>`;
+          }
+
+          const itemDisplay = highlight(itemRaw);
+          const locDisplay = highlight(locRaw);
+          const remDisplay = highlight(remRaw);
+
+          html += `
+                    <tr>
+                        <td class="col-item">${itemDisplay}</td>
+                        <td class="col-floor">${floorDisplay}</td>
+                        <td class="col-location">${locDisplay}</td>
+                        <td class="col-date">${dateRaw}</td>
+                        <td class="col-remarks">${remDisplay || ""}</td>
+                    </tr>
+                `;
+        }
+
+        resultBody.innerHTML = html;
+        resultCount.textContent = records.length;
+
+        if (kwLower) {
+          searchHint.textContent = `🔍 搜尋「${kw}」共 ${records.length} 筆結果`;
+        } else {
+          searchHint.textContent = "📋 顯示全部記錄 · 輸入關鍵字可篩選";
+        }
+      }
+
+      // ================================================================
+      //  5. 搜尋邏輯 (跨欄位模糊匹配，樓層支援斜槓省略)
+      // ================================================================
+      function performSearch() {
+        const raw = searchInput.value;
+        const keyword = raw.trim();
+        const kwLower = keyword.toLowerCase();
+        const kwFloorNorm = normalizeFloor(keyword); // 用於樓層比對
+
+        if (!kwLower) {
+          render(DATA, "");
+          return;
+        }
+
+        const filtered = DATA.filter((r) => {
+          // 一般欄位：item, location, remarks (小寫包含)
+          const itemMatch = r.item.toLowerCase().includes(kwLower);
+          const locMatch = r.location.toLowerCase().includes(kwLower);
+          const remMatch = (r.remarks || "").toLowerCase().includes(kwLower);
+
+          // 樓層欄位：標準化後包含
+          const floorMatch = normalizeFloor(r.floor).includes(kwFloorNorm);
+
+          return itemMatch || floorMatch || locMatch || remMatch;
+        });
+
+        render(filtered, keyword);
+      }
+
+      // ================================================================
+      //  6. 重置
+      // ================================================================
+      function resetSearch() {
+        searchInput.value = "";
+        render(DATA, "");
+        searchInput.focus();
+      }
+
+      // ================================================================
+      //  7. 事件綁定
+      // ================================================================
+      searchBtn.addEventListener("click", performSearch);
+
+      resetBtn.addEventListener("click", resetSearch);
+
+      searchInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          performSearch();
+        }
+      });
+
+      let debounceTimer = null;
+      searchInput.addEventListener("input", () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          performSearch();
+        }, 300);
+      });
+
+      // ================================================================
+      //  8. 初始化
+      // ================================================================
+      render(DATA, "");
+    </script>
+  </body>
+</html>
